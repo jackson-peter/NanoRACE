@@ -4,8 +4,13 @@ import os
 import sys
 min_version("7.0")
 
-include: "rules/common.smk"
+# JP
+
+#include: "rules/common.smk"
 workdir: config["outdir"]
+
+SCRIPTS_PATH = str(Path(workflow.basedir) / "scripts" )
+os.environ["PATH"] += os.pathsep + SCRIPTS_PATH
 
 # Wildcards
 SAMPLES, = glob_wildcards(Path(config["runs_dir"], "{sample,[^/]+}.fastq.gz")) # ,[^/]+} -> avoids to match all subdirectories. 
@@ -21,6 +26,7 @@ rule all:
         polya = expand(Path(config["polyA_dir"], "{sample}.polya_tail.results.txt"), sample = SAMPLES),
         read_info = expand(Path(config["polyA_dir"], "{sample}.read_info.result.txt"), sample = SAMPLES),
         merge_read_info = expand(Path(config["polyA_dir"], "{sample}.read_info.result.merged.txt"), sample = SAMPLES),
+        extract_tails = expand(Path(config["polyA_dir"], "{sample}.read_info.result.merged.parts.csv"), sample = SAMPLES),
         prepare_data_for_splice_kinetics = expand(Path(config["polyA_dir"], "{sample}.read_intron_pos.splicing.txt"), sample = SAMPLES),
 
         splicing_kinetics = expand(Path(config["polyA_dir"], "{sample}.splicing_kinetics.txt"), sample = SAMPLES),
@@ -138,6 +144,25 @@ rule merge_read_info:
         """
         merge_read_info.R --type Nanopore --inreadinfo {input.read_info} --inadapter {input.adapters} --inpolya {input.polya} --out {output.read_info}
         """
+
+rule extract_tails:
+    input:
+        merged_read_info = rules.merge_read_info.output.read_info,
+        #fastq = RUNS_DIR / "{sample}.fastq.gz"
+        fasta = rules.fastq2fasta.output.fasta
+    output:
+        Path(config["polyA_dir"], "{sample}.read_info.result.merged.parts.csv")
+    conda:
+        "envs/flepseq.yaml"
+    threads: 
+        1
+    resources:
+        mem = "16G"
+    shell:
+        """
+        extract_tails.py --inadapter {input.merged_read_info} --inseq {input.fasta} --out {output}
+        """
+
 
 rule prepare_data_for_splice_kinetics:
     input:

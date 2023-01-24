@@ -28,9 +28,6 @@ def main(inadapter, inseq, out, verbose):
     pysam.faidx(inseq)
     fasta = pysam.Fastafile(inseq)
 
-    """
-    5' - ATCGCCTACCGTGAC + AAGAAAGTTGTCGGTGTCTTTGTG + ACTTGCCTGTCGCTCTATCTTC + ATTGATGGTGCCTACAG + TTTTTTTT - 3'  
-    """
     String_AAAA_mm = '(%s){e<=0}(%s){e<=2}'% ("CTG", "TAGGCACCATCAAT") ## Search for adaptor in the sequence
     read_core_id_list, mRNA_list, polytail_list, tail_list, adapter_list = [], [], [], [], []
     Count=0
@@ -80,7 +77,7 @@ def main(inadapter, inseq, out, verbose):
                     print(f">{readname},+")
                     #print(f"{Fore.BLUE}{adapter}{Fore.MAGENTA}{random}{Fore.GREEN}{delimiter}{Fore.LIGHTYELLOW_EX}{polytail}{Style.RESET_ALL}{gene}")
                     print(f"{gene}{Fore.LIGHTYELLOW_EX}{polytail}{Fore.BLUE}{adapter}{Style.RESET_ALL}")
-        input("press enter")
+        #input("press enter")
 
 
     print(f"{Fore.BLUE}{Count} total reads")

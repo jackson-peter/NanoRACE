@@ -13,6 +13,9 @@ dependencies:
     - pysam
     - python>=3.9
     - seqkit
+    - regex
+    - pyfastx
+    - tqdm
     - r-base=4.1
     - r-tidyverse
     - r-optparse
