@@ -1,0 +1,6 @@
+name: pycoqc
+channels:
+    - bioconda
+    - defaults
+dependencies:
+    - pycoqc
