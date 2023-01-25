@@ -1,5 +1,7 @@
 # Nano3RACE-Seq
 
+## TO DO: Complete this file. 
+
 ## Description
 
 Snakemake pipeline for polyA detection via:
@@ -24,3 +26,8 @@ graph TD
     D --> |3' terminal non-adenosine analysis|E(results)
 
 ```
+
+
+## Usefull links
+
+- Research article describing FLEPSeq2: https://www.nature.com/articles/s41596-021-00581-7
