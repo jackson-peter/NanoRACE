@@ -66,20 +66,10 @@ rule samtools_coverage:
         """
 
 
-rule fastq2fasta:
-    input: fastq= Path(config["runs_dir"], "{sample}.fastq.gz"),
-    output: fasta = Path(config["intermediate_dir"], "{sample}.fasta"),
-    threads: 1
-    shell:
-       """
-       module load seqtk
-       seqtk seq -A {input.fastq} > {output.fasta}
-       """
-
 rule adapterFinder:
     input:
-        #fastq = RUNS_DIR / "{sample}.fastq.gz",
-        fasta = rules.fastq2fasta.output.fasta,
+        fastq = Path(config["runs_dir"], "{sample}.fastq.gz"),
+        #fasta = rules.fastq2fasta.output.fasta,
         bam = rules.minimap2_genome.output.bam
         #bam = rules.remove_rRNA.output.bam
     output:
@@ -94,7 +84,7 @@ rule adapterFinder:
     shell: 
         """
         module load ncbi-blast+
-        adapterFinder.py --threads {threads} --inbam {input.bam} --inseq {input.fasta} --out {output.adapters}
+        adapterFinder.py --threads {threads} --inbam {input.bam} --inseq {input.fastq} --out {output.adapters}
         """
 
 rule polya_caller:
@@ -148,8 +138,8 @@ rule merge_read_info:
 rule extract_tails:
     input:
         merged_read_info = rules.merge_read_info.output.read_info,
-        #fastq = RUNS_DIR / "{sample}.fastq.gz"
-        fasta = rules.fastq2fasta.output.fasta
+        fastq = Path(config["runs_dir"], "{sample}.fastq.gz")
+        #fasta = rules.fastq2fasta.output.fasta
     output:
         Path(config["polyA_dir"], "{sample}.read_info.result.merged.parts.csv")
     conda:
@@ -160,7 +150,7 @@ rule extract_tails:
         mem = "16G"
     shell:
         """
-        extract_tails.py --inadapter {input.merged_read_info} --inseq {input.fasta} --out {output}
+        extract_tails.py --inadapter {input.merged_read_info} --inseq {input.fastq} --out {output}
         """
 
 

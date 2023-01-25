@@ -9,7 +9,7 @@ import joblib
 import click
 import multiprocessing
 import gzip
-#
+import pyfastx
 import shutil
 from os import listdir
 from os.path import isfile, join
@@ -217,48 +217,19 @@ def iter_group_by_id(d, id_index=0, sort_flag=False):
     if sort_flag: d = sorted(d, key=lambda x: x[id_index])
     return _iter_id(d, id_index)
 
-def read_fasta_to_dict(filein):
+
+def read_fastq_to_dict(filein):
     """
-    !!!The function in included in both adapterFinder.py and 
-    pacbio_find_polyA.py. They are same function, but haven't
-    be put in a module to keep each script can be run independently.
-    If you want to modify one of them, please modify them at the 
-    same time.
-    
-    Input: fasta files
-    
+    Input: fastq files
     Output: dict
     key: sequence name
-         #>seq1 npr1
-         #run: l[1:].split()[0]
-         #will get `seq1`
     value: sequence
     """
-    
-    id2seq = {}
-    
-    seq_id, seq = "", ""
-    if filein.endswith(".gz"):
-        IN = gzip.open(filein, 'rt')
-    else:
-        IN = open(filein)
-    try:
-        for line_num, l in enumerate(IN):
-            l = l.strip()
-            if l.startswith(">"):
-                if seq_id:
-                    id2seq[seq_id] = seq
-                seq = ""
-                seq_id = l[1:].split()[0]
-            else:
-                seq += l
-    except:
-        raise
-    finally:
-        IN.close()
-    if seq_id:
-        id2seq[seq_id] = seq
-        
+    id2seq={}
+
+    for seqid,seq,qual in pyfastx.Fastq(filein, build_index=False):
+        id2seq[seqid] = seq
+
     return(id2seq)
 
 def revcom(seq):
@@ -411,7 +382,8 @@ def iter_bam_clip_seq(filein_bam, filein_seq, pad_length=20):
         left_clip_name, right_clip_name = [read_name + ",5", read_name + ",3"]
         return [read_strand, seq_length, read_name, left_clip_name, left_clip_seq, right_clip_name, right_clip_seq]
 
-    origin_seqs = read_fasta_to_dict(filein_seq)
+    #origin_seqs = read_fasta_to_dict(filein_seq)
+    origin_seqs = read_fastq_to_dict(filein_seq)
 
     with pysam.AlignmentFile(filein_bam, "rb") as bam_obj:
         for read in bam_obj.fetch():

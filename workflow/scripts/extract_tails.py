@@ -2,6 +2,7 @@
 import pandas as pd
 import click
 import pysam
+import pyfastx
 import collections
 import regex
 from tqdm import tqdm
@@ -15,7 +16,8 @@ REV=["R-F", "R-R", "R-N", "R-UF", "R-UUR", "R-UR", "N-F", "N-UF", "UF-F", "UR-F"
 
 @click.command()
 @click.option('-i', '--inadapter', help='Input adapter file', required=True, type=click.Path(exists=True))
-@click.option('-s', '--inseq', help='Input read fasta file', required=True, type=click.Path(exists=True))                             
+#@click.option('-s', '--inseq', help='Input read fasta file', required=True, type=click.Path(exists=True))                             
+@click.option('-s', '--inseq', help='Input read fastq file', required=True, type=click.Path(exists=True))                             
 @click.option('-o', '--out', help='Output adapter information of each read', required=True)
 @click.option('-v', '--verbose', is_flag=True, help="Print sequences with colors for polytail, adapter and delimiter")
 
@@ -25,9 +27,9 @@ def main(inadapter, inseq, out, verbose):
     df = pd.read_csv(inadapter, delimiter = "\t")
     df.head()
     
-    pysam.faidx(inseq)
-    fasta = pysam.Fastafile(inseq)
-
+    #pysam.faidx(inseq)
+    
+    #fasta = pyfastx.Fastq(inseq)
     String_AAAA_mm = '(%s){e<=0}(%s){e<=2}'% ("CTG", "TAGGCACCATCAAT") ## Search for adaptor in the sequence
     read_core_id_list, mRNA_list, polytail_list, tail_list, adapter_list = [], [], [], [], []
     Count=0
@@ -37,7 +39,7 @@ def main(inadapter, inseq, out, verbose):
     CountRevA=0
     for readid, mRNA, start, end, primer_type in tqdm(zip(df['read_core_id'], df['mRNA'], df['init_polya_start_base'], df['init_polya_end_base'], df['primer_type']), total = df.shape[0]):
         readname = readid.split(",")[0]
-        seq = get_seq(fasta, readname)
+        seq = get_seq(inseq, readname)
         Count += 1
         if primer_type in FWD: # gene_AAAAA + Adapter
             CountFor += 1
@@ -112,13 +114,15 @@ def main(inadapter, inseq, out, verbose):
     print("--- %s seconds ---" % (time.time() - start_time))
 
 
-
-def get_seq(fasta, readname) -> str:
-    #return(pysam.faidx(inseq, f"{readname}:{start}-{end}"))
-    return(fasta.fetch(readname))
+def get_seq(fastq, readname) -> str:
+    
+    fq=pyfastx.Fastq(fastq)
+    seq = fq[readname].seq
+    return seq
 
 def get_composition2(seq: str) -> pd.Series:
     """
+    HZ
     Get the composition and the percentage of ATGC in a DNA sequence. 
     Ignore all nucleotides other than ATGC (like N).
     """
@@ -139,6 +143,7 @@ def get_composition2(seq: str) -> pd.Series:
 
 def get_composition(seq: str) -> pd.Series:
     """
+    JP
     Get the composition and the percentage of ATGC in a DNA sequence. 
     Ignore all nucleotides other than ATGC (like N).
     """
