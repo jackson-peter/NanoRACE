@@ -19,8 +19,8 @@ graph TD
     A(.nanopore.fast5) --> |Basecalling with Guppy| B(.fastq)
     B --> |Mapping with minimap2| C(.bam)
     C --> |adapterFinder.py| D(.adapter_results.txt)
-    D --> |PolyA Caller|
-    D --> |Downstream Analysis|
-    D --> |3' terminal non-adenosine analysis|
+    D --> |PolyA Caller| E(results)
+    D --> |Downstream Analysis|E(results)
+    D --> |3' terminal non-adenosine analysis|E(results)
 
 ```
