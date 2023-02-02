@@ -27,7 +27,6 @@ graph TD
 
 ```
 
-
 ## Usefull links
 
 - Research article describing FLEPSeq2: https://www.nature.com/articles/s41596-021-00581-7

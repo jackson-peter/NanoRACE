@@ -42,6 +42,7 @@ see more by --help.
 @click.option('-o', '--out', help='Output adapter information of each read', required=True)
 @click.option('-m', '--mode', required=False, default=0, help='sequence method: 0: original flep-seq. 1: SQK-PCB109-flepseq')
 @click.option('-t', '--threads', required=False, default=10, help='Number of threads to use. (default: 10)')
+
 def main(inbam, inseq, out, mode, threads):
     """
     \b
@@ -490,41 +491,6 @@ type2strand = {
             "UUR-UUR": ["-", 4]
 }
 
-def blast2(seqs, db_path=None, lib_seqs=None):
-    """
-    Run blast and return result in outfmt 6 in string.
-    
-    Input:
-    seqs:  string, fasta format
-    you can provide a blast db path via set db_path, 
-    or you can directly provide a string contain lib seqeunces in fasta 
-    format. If you provide db_path, it didn't perform makeblastdb.
-    
-    Output:
-    String. blast results in outfmt 6.
-    """
-    def _blast(seqs, db_path):
-        proc = subprocess.run(
-                ['blastn', '-query', "-", '-db', db_path,
-                 '-word_size', '6', '-outfmt', "6"],
-                input=str.encode(seqs), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        return(proc.stdout.decode())
-    
-    def _makeblastdb(fasta_file):
-        proc = subprocess.run(['makeblastdb', '-in', fasta_file, '-dbtype', 'nucl'])
-    
-    if db_path:
-        return _blast(seqs, db_path)
-    else:
-        output = ""
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            tmp_fasta_file = os.path.join(tmp_dir, "lib.fa")
-            with open(tmp_fasta_file, 'w') as o:
-                o.write(lib_seqs)
-            _makeblastdb(tmp_fasta_file)
-            output = _blast(seqs, tmp_fasta_file)
-        return output
-
 def blast(seqs, db_path=None, lib_seqs=None):
     """
     Run blast and return result in outfmt 6 in string.
@@ -553,19 +519,12 @@ def blast(seqs, db_path=None, lib_seqs=None):
     else:
         output = ""
         with tempfile.TemporaryDirectory() as tmp_dir:
-            print("#@#@#@#@#@#@#@#@#@")
-            cpdir=os.path.join("/home/jpeter/TMP/", os.path.basename(tmp_dir))
-
-
             tmp_fasta_file = os.path.join(tmp_dir, "lib.fa")
             with open(tmp_fasta_file, 'w') as o:
                 o.write(lib_seqs)
             _makeblastdb(tmp_fasta_file)
             output = _blast(seqs, tmp_fasta_file)
-            shutil.copytree(tmp_dir, cpdir)
-            
-        return output
-    
+        return output  
     
 def blast_nanopore_adapter(seqs, 
                            primer_5p="AAGCAGTGGTATCAACGCAGAGTACATGGG", 
@@ -620,12 +579,9 @@ def iter_blast_by_read(filein, is_file=True):
     def iter_blast_by_query(filein, is_file=True):
         
         def _iterline_blast_file(filein):
-            print("ISFILE?")
             if is_file:
-                print("yes")
                 IN = open(filein)
             else:
-                print("no")
                 IN = filein.splitlines()
             for l in IN:
                 d = l.rstrip("\n").split("\t")

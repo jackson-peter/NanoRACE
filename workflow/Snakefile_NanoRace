@@ -5,8 +5,6 @@ import sys
 min_version("7.0")
 
 # JP
-
-#include: "rules/common.smk"
 workdir: config["outdir"]
 
 SCRIPTS_PATH = str(Path(workflow.basedir) / "scripts" )
@@ -52,7 +50,6 @@ rule minimap2_genome:
         samtools index {output.bam}
         """
 
-
 rule samtools_coverage:
     input:
         bam = rules.minimap2_genome.output.bam
@@ -64,7 +61,6 @@ rule samtools_coverage:
         module load samtools
         samtools coverage {input.bam} > {output.coverage}
         """
-
 
 rule adapterFinder:
     input:
