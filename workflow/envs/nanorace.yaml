@@ -1,4 +1,4 @@
-name: flepseq
+name: nanorace
 channels:
     - conda-forge
     - bioconda
@@ -9,6 +9,9 @@ dependencies:
     - joblib
     - ont-fast5-api
     - pandas
+    - numpy
+    - swifter
+    - biopython
     - bzip2
     - pysam
     - python>=3.9
@@ -20,3 +23,4 @@ dependencies:
     - r-tidyverse
     - r-optparse
     - r-data.table
+    - edlib

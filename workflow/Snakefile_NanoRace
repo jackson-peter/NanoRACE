@@ -24,7 +24,7 @@ rule all:
         polya = expand(Path(config["polyA_dir"], "{sample}.polya_tail.results.txt"), sample = SAMPLES),
         read_info = expand(Path(config["polyA_dir"], "{sample}.read_info.result.txt"), sample = SAMPLES),
         merge_read_info = expand(Path(config["polyA_dir"], "{sample}.read_info.result.merged.txt"), sample = SAMPLES),
-        extract_tails = expand(Path(config["polyA_dir"], "{sample}.read_info.result.merged.parts.csv"), sample = SAMPLES),
+        extract_tails = expand(Path(config["tail_dir"], "{sample}.read_info.result.merged.parts.csv"), sample = SAMPLES),
         prepare_data_for_splice_kinetics = expand(Path(config["polyA_dir"], "{sample}.read_intron_pos.splicing.txt"), sample = SAMPLES),
 
         splicing_kinetics = expand(Path(config["polyA_dir"], "{sample}.splicing_kinetics.txt"), sample = SAMPLES),
@@ -74,7 +74,7 @@ rule adapterFinder:
         mode = "--mode 1" # 0 = FLEPSeq1, 1 = FLEPSeq2. (Default is 0 in adapterFinder.py)
     message: "Find 3’ adapter in reads"
     conda: 
-        "envs/flepseq.yaml"
+        "envs/nanorace.yaml"
     threads: 
         12
     shell: 
@@ -92,7 +92,7 @@ rule polya_caller:
     output:
         polya = Path(config["polyA_dir"],"{sample}.polya_tail.results.txt")
     conda: 
-        "envs/flepseq.yaml"
+        "envs/nanorace.yaml"
     threads: 
         12
     shell: 
@@ -107,7 +107,7 @@ rule extract_read_info:
     output:
         read_info = Path(config["polyA_dir"], "{sample}.read_info.result.txt")
     conda: 
-        "envs/flepseq.yaml"
+        "envs/nanorace.yaml"
     threads: 
         4
     shell: 
@@ -123,7 +123,7 @@ rule merge_read_info:
     output:
         read_info = Path(config["polyA_dir"], "{sample}.read_info.result.merged.txt")
     conda: 
-        "envs/flepseq.yaml"
+        "envs/nanorace.yaml"
     threads: 
         4
     shell:
@@ -137,9 +137,9 @@ rule extract_tails:
         fastq = Path(config["runs_dir"], "{sample}.fastq.gz")
         #fasta = rules.fastq2fasta.output.fasta
     output:
-        Path(config["polyA_dir"], "{sample}.read_info.result.merged.parts.csv")
+        Path(config["tail_dir"], "{sample}.read_info.result.merged.parts.csv")
     conda:
-        "envs/flepseq.yaml"
+        "envs/nanorace.yaml"
     threads: 
         1
     resources:
@@ -158,7 +158,7 @@ rule prepare_data_for_splice_kinetics:
         read_intron = Path(config["polyA_dir"], "{sample}.read_intron_pos.splicing.txt")
     message:  "Analyze splicing kinetics - Step 1: Prepare data"
     conda: 
-        "envs/flepseq.yaml"
+        "envs/nanorace.yaml"
     threads: 
         4
     shell:
@@ -176,7 +176,7 @@ rule plot_intron_splicing_kinetics:
         plot = Path(config["polyA_dir"], "{sample}.splicing_kinetics.pdf")
     message:  "Analyze splicing kinetics - Step 2: Get results and plots"
     conda: 
-        "envs/flepseq.yaml"
+        "envs/nanorace.yaml"
     threads: 
         4
     shell:
@@ -199,7 +199,7 @@ rule calculate_intron_retention_ratio:
         unspliced_intron = Path(config["polyA_dir"], "{sample}.intron.unspliced_ratio.txt")
     message:  "Analyze splicing kinetics - Step 2: Get results and plots"
     conda: 
-        "envs/flepseq.yaml"
+        "envs/nanorace.yaml"
     threads: 
         4
     shell:
