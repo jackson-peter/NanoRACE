@@ -25,6 +25,7 @@ rule all:
         read_info = expand(Path(config["polyA_dir"], "{sample}.read_info.result.txt"), sample = SAMPLES),
         merge_read_info = expand(Path(config["polyA_dir"], "{sample}.read_info.result.merged.txt"), sample = SAMPLES),
         extract_tails = expand(Path(config["tail_dir"], "{sample}.read_info.result.merged.parts.csv"), sample = SAMPLES),
+        extract_tails_log = expand(Path(config["tail_dir"], "{sample}.read_info.result.merged.parts.csv.log"), sample = SAMPLES),
         prepare_data_for_splice_kinetics = expand(Path(config["polyA_dir"], "{sample}.read_intron_pos.splicing.txt"), sample = SAMPLES),
 
         splicing_kinetics = expand(Path(config["polyA_dir"], "{sample}.splicing_kinetics.txt"), sample = SAMPLES),
@@ -137,7 +138,8 @@ rule extract_tails:
         fastq = Path(config["runs_dir"], "{sample}.fastq.gz")
         #fasta = rules.fastq2fasta.output.fasta
     output:
-        Path(config["tail_dir"], "{sample}.read_info.result.merged.parts.csv")
+        result = Path(config["tail_dir"], "{sample}.read_info.result.merged.parts.csv"),
+        log = Path(config["tail_dir"], "{sample}.read_info.result.merged.parts.csv.log")
     conda:
         "envs/nanorace.yaml"
     threads: 
@@ -146,7 +148,7 @@ rule extract_tails:
         mem = "16G"
     shell:
         """
-        extract_tails.py --inadapter {input.merged_read_info} --inseq {input.fastq} --out {output}
+        extract_tails.py --inadapter {input.merged_read_info} --inseq {input.fastq} --out {output.result}
         """
 
 
@@ -210,3 +212,28 @@ rule calculate_intron_retention_ratio:
             --outrna {output.mrna_incompletely_spliced} \
             --outintron {output.unspliced_intron}
         """
+rule plot_three_p_tails:
+    input:
+        #tail_dir=Path(config["tail_dir"]),
+        barcode_corr = Path(config["barcode_corr"])
+    output:
+        Utail_barplot = Path(config["tail_dir"], "AddTail_length_barplot.pdf"),
+        pct_uridylation = Path(config["tail_dir"], "AddTail_Percent_of_uridylation.pdf"),
+        addTail_basecomp = Path(config["tail_dir"], "Addtail_BaseComposition.pdf"),
+        polyA_distr1 = Path(config["tail_dir"], "PolyA_length_nchar.pdf"),
+        polyA_distr3 = Path(config["tail_dir"], "PolyA_length_polyAlength.pdf"),
+        polyA_distr4 = Path(config["tail_dir"], "PolyA_length_initPolyALength.pdf")
+    params: 
+        suffix_add=".read_info.result.merged.parts.csv",
+        tail_dir=Path(config["outdir"], config["tail_dir"])
+    message:  "Generating plots of 3' ends"
+    conda: 
+        "envs/flepseq.yaml"
+    threads: 
+        4
+    shell:
+        """    
+        plot_tail.R {params.suffix_add}  {params.tail_dir} {input.barcode_corr}
+        """
+
+
