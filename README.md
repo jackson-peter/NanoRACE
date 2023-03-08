@@ -4,13 +4,10 @@
 
 ## Description
 
-Snakemake pipeline for polyA detection via:
-
-    - FLEP-seq (Full-Length Elongating and Polyadenylated RNA sequencing) 
-    - Nano3RACE
+Snakemake pipeline for polyA detection via Nano3'RACE
 
 This snakemake regroups the major steps described in the FLEPSeq2 github repository (https://github.com/ZhaiLab-SUSTech/FLEPSeq). 
-We added an extra step (extract_tails.py) to extract the polyA tails and to help filter the PCR duplicates.  
+We added an extra step (extract_tails.py) to extract the additionnal tail after the polyA, and analyse its composition. We also added an unique molecule identifier (UMI) sequence in the librairies to allow the deduplication of the PCR duplicates. This UMI consists in a random nucleotide sequence of 10 bp (NNNNNNNNNN)
 
 Some minor changes have been done to the original FLEPSeq2 code:
 - Handling directly FASTQ files without needing to convert them to FASTA
@@ -24,6 +21,7 @@ graph TD
     D --> |PolyA Caller| E(results)
     D --> |Downstream Analysis|E(results)
     D --> |3' terminal non-adenosine analysis|E(results)
+    E --> |plot_tail.R| F(result.merged.parts.csv)
 
 ```
 

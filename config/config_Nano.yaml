@@ -1,5 +1,7 @@
 basecalled_dir: "/ssd_workspace/jpeter/ssData/Guppy_basecalling/20230131_1436_MN26523_FAS60584_9ae1905f/workspace"
-outdir: "/home/jpeter/DATA/NanoRACE/Test_RACE/OUTDIR"
+outdir: "/home/jpeter/DATA/NanoRACE/Test_RACE/OUTDIR2"
+barcode_corr: "/home/jpeter/DATA/FLEPseq/RUN08_Fleurs_v4/barcode_correspondances.tsv"
+
 
 runs_dir: "1_Runs"
 mapping_dir: "2_Mapping"

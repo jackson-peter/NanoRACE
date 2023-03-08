@@ -8,6 +8,7 @@ import sys
 from Bio import SeqIO
 from itertools import zip_longest
 import edlib
+import json
 import regex
 import gzip
 from tqdm import tqdm
@@ -16,6 +17,17 @@ from collections import Counter
 init(autoreset=True)
 
 #NanoRACE
+
+
+class NpEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        if isinstance(obj, np.floating):
+            return float(obj)
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return super(NpEncoder, self).default(obj)
 
 equalities=[("M", "A"), ("M", "C"),("R", "A"), ("R", "A"), ("W", "A"), ("W", "A"), ("S", "C"), ("S", "C"), ("Y", "C"), ("Y", "C"), 
 ("K", "G"), ("K", "G"), ("V", "A"), ("V", "C"), ("V", "G"), ("H", "A"), ("H", "C"), ("H", "T"), ("D", "A"), ("D", "G"), ("D", "T"),
@@ -44,8 +56,9 @@ def main(inadapter, inseq, out, constant_seq="CTGAC", umi_seq="NNNNNNNNNN", adap
     'polya_length': float,
     'init_polya_length': float}
     
+    log_dict={}
     df = pd.read_csv(inadapter, delimiter = "\t", usecols=fields,dtype=dtypes)
-    nb_reads_input=len(df.index) 
+    log_dict["nb_reads_input"]=len(df.index) 
     
     df['readname'] = df['read_core_id'].str.split(",",n=1).str[0]
     #fq = SeqIO.to_dict(SeqIO.parse(gzip.open(inseq, "rt"),'fastq'))
@@ -66,28 +79,20 @@ def main(inadapter, inseq, out, constant_seq="CTGAC", umi_seq="NNNNNNNNNN", adap
     df.drop('read_seqs', axis=1, inplace=True)
     df = df.replace(r'^\s*$', np.nan, regex=True)
     df.to_csv(out, encoding='utf-8', index=False, sep='\t', na_rep="NA")
-    nb_reads_output=len(df.index)
-    nb_unid_polyA=df['polytail'].isna().sum()
-    nb_unid_add=df['additional_tail'].isna().sum()
-    nb_unid_delim=df['delimiter'].isna().sum()
-    nb_unid_umi=df['umi'].isna().sum()
-    nb_unid_adapter=df['adapter'].isna().sum()
+    log_dict["nb_reads_output"]=len(df.index)
+    log_dict["nb_unid_polyA"]=df['polytail'].isna().sum()
+    log_dict["nb_unid_add"]=df['additional_tail'].isna().sum()
+    log_dict["nb_unid_delim"]=df['delimiter'].isna().sum()
+    log_dict["nb_unid_umi"]=df['umi'].isna().sum()
+    log_dict["nb_unid_adapter"]=df['adapter'].isna().sum()
 
-    nb_reads_fwd=df.sense.value_counts()['FWD']
-    nb_reads_rev=df.sense.value_counts()['REV']
+    log_dict["nb_reads_fwd"]=df.sense.value_counts()['FWD']
+    log_dict["nb_reads_rev"]=df.sense.value_counts()['REV']
 
     #Making log
     with open(out+'.log', 'w') as outlog:
-        print(f"{Fore.BLUE}{nb_reads_input} total reads in adapter file", file=outlog)
-        print(f"{Fore.BLUE}{nb_reads_output} total reads in output file", file=outlog)
-        print(f"{Fore.BLUE}{nb_reads_fwd} forward reads", file=outlog)
-        print(f"{Fore.GREEN}{nb_reads_rev} reverse reads", file=outlog)
-        
-        print(f"{Fore.RED}{nb_unid_polyA} unidentified polyA", file=outlog)
-        print(f"{Fore.RED}{nb_unid_add} unidentified add_tail", file=outlog)
-        print(f"{Fore.RED}{nb_unid_delim} unidentified delimiter", file=outlog)
-        print(f"{Fore.RED}{nb_unid_umi} unidentified umi", file=outlog)
-        print(f"{Fore.RED}{nb_unid_adapter} unidentified adapter", file=outlog)
+        json.dump(log_dict, outlog, cls=NpEncoder)
+
 
 
 
