@@ -10,12 +10,12 @@ library(gridExtra)
 ######## ARGUMENTS
 args = commandArgs(trailingOnly=TRUE)
 
-#suffix_add_tail=args[1]
-suffix_add_tail=".read_info.result.merged.parts.csv"
-#dir_add_tail=args[2]
-dir_add_tail="/home/jpeter/DATA/FLEPseq/RUN08_Fleurs_v3/4_Tail"
-#sample_corresp=args[3]
-sample_corresp="/home/jpeter/DATA/FLEPseq/RUN08_Fleurs_v3/barcode_correspondances.tsv"
+suffix_add_tail=args[1]
+#suffix_add_tail=".read_info.result.merged.parts.csv"
+dir_add_tail=args[2]
+#dir_add_tail="/home/jpeter/DATA/FLEPseq/RUN09_Heike/4_Tail"
+sample_corresp=args[3]
+#sample_corresp="/home/jpeter/DATA/FLEPseq/RUN09_Heike/barcode_correspondance.tsv"
 
 ######## \ ARGUMENTS
 
@@ -28,12 +28,22 @@ give.n <- function(x){
 
 ######## DATA IMPORT
 
-samples_infos <- fread(sample_corresp, header = F, col.names = c("code", "sample")) %>%
-  mutate(add_tail_path=file.path(dir_add_tail,paste0(code,suffix_add_tail)))
+samples_infos <- fread(sample_corresp, header = F, col.names = c("code", "sample")) %>% 
+  mutate(add_tail_path=file.path(path=dir_add_tail,paste0(code, suffix_add_tail)))
+
 
 nlist_add_tail <- samples_infos$add_tail_path
 
 names(nlist_add_tail) <- samples_infos$code
+palette2_all <- grDevices::colors()
+palette2_no_gray <- palette2_all[grep("gr(a|e)y",             # Remove gray colors
+                                      grDevices::colors(),
+                                      invert = T)]
+if ( nrow(samples_infos)==4 ) {
+  my_colors <- c("gray50", "darkblue", "wheat", "darkred")
+} else {
+  my_colors <- sample(palette2_no_gray, nrow(samples_infos))
+}
 
 REF_genotype <- as.character(samples_infos[1, "sample"])
 
@@ -66,10 +76,8 @@ global_pctU <- df_uri %>% group_by(sample, U_state, .drop=FALSE) %>%
 mRNA_pctU$sample <- factor(mRNA_pctU$sample, levels=as.vector(samples_infos$sample))
 global_pctU$sample <- factor(global_pctU$sample, levels=as.vector(samples_infos$sample))
 
-my_colors <- c("gray50", "darkblue", "wheat", "darkred")
-
 mRNA_Utails <- mRNA_pctU %>% filter(U_state=="U-tail")
-  
+
 global_Utails <- global_pctU%>% filter(U_state=="U-tail")
 
 p1 <- ggplot(mRNA_Utails, aes(x=sample, y=Percent, fill=sample)) + 
@@ -104,9 +112,19 @@ p <- ggplot(df_uri%>%filter(U_state=="U-tail")) + geom_bar(aes(tail_length, fill
   theme_bw()+
   ggtitle("Read counts vs Utail length")
 
-p
 
 ggsave(filename =file.path(dir_add_tail,"AddTail_length_barplot.pdf"), p, width = 5, height = 6, dpi = 300)
+
+p <- ggplot(df_uri%>%filter(U_state=="U-tail",
+                            tail_length<30)) + geom_bar(aes(tail_length, fill=sample), color="black") +
+  facet_wrap(~sample, ncol=1, scales="free") +
+  #scale_x_continuous(limits=c(0,20), breaks=seq(0,20,by=2)) +
+  scale_fill_manual(values = my_colors) +
+  theme_bw()+
+  ggtitle("Read counts vs Utail length")
+
+
+ggsave(filename =file.path(dir_add_tail,"AddTail_length_barplot_zoom.pdf"), p, width = 5, height = 6, dpi = 300)
 
 df_uri_add_tail_long <- df_uri %>% filter(U_state=="U-tail") %>%
   pivot_longer(cols=c("add_tail_pct_A", "add_tail_pct_C", "add_tail_pct_G", "add_tail_pct_T"), names_to = "add_tail_nucl", values_to = "add_tail_pct")
@@ -124,8 +142,6 @@ p <- ggplot(df_uri_add_tail_long_summ, aes(x=sample, y=mean_add_tail_pct, fill=s
   theme_bw() +
   ggtitle("additional tail base composition")
 
-p
-
 ggsave(filename =file.path(dir_add_tail,"Addtail_BaseComposition.pdf"), p, width = 5, height = 6, dpi = 300)
 
 
@@ -135,7 +151,6 @@ p <- ggplot(df_uri_add_tail_long, aes(x=sample, y=tail_length, fill=sample)) +
   theme_bw() +
   coord_cartesian(ylim=c(0, 25))
 
-p
 ggsave(filename =file.path(dir_add_tail,"Utail_length_bp.pdf"), p, width = 5, height = 6, dpi = 300)
 
 
@@ -159,7 +174,7 @@ ggsave(filename =file.path(dir_add_tail,"PolyA_length_nchar.pdf"),width = 5, hei
 
 
 ggplot(df_uri %>% filter(polya_length_nchar<200,
-                     polya_length_nchar>10)) +
+                         polya_length_nchar>10)) +
   geom_density(aes(polya_length, fill=sample, color=sample), alpha=0.2,  lwd = 1) +
   facet_wrap(~U_state, scales="free") +
   scale_fill_manual(values = my_colors) +
