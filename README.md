@@ -11,8 +11,8 @@ We added an extra step (extract_tails.py) to extract the additionnal tail after 
 
 Some minor changes have been done to the original FLEPSeq2 code:
 - Handling directly FASTQ files without needing to convert them to FASTA
+- Detecting the UMI to allow deduplication step
 
-Steps of the workflow
 ```mermaid
 graph TD
     A(.nanopore.fast5) --> |Basecalling with Guppy| B(.fastq)
@@ -24,7 +24,66 @@ graph TD
     E --> |plot_tail.R| F(result.merged.parts.csv)
 
 ```
+## Data Preparation
+
+the fastq files of each sample (genotype) have to be concatenated in the output directory:
+```console
+mkdir -p ~/DATA/FLEPseq/RUN11_F/1_Runs
+
+cat barcode12/*.fastq.gz > ~/DATA/FLEPseq/RUN11_F/1_Runs/barcode12.fastq.gz
+cat barcode13/*.fastq.gz > ~/DATA/FLEPseq/RUN11_F/1_Runs/barcode13.fastq.gz
+```
+
+## Getting started
+
+Clone the repository
+
+```console
+git clone https://github.com/jackson-peter/FLEPseq2.git
+```
+
+A configuration file (.yaml) is required to run the workflow. An example is included in the FLEPseq2/config folder. You can modify it to suit your data.
+```yaml
+basecalled_dir: "/ssd_workspace/jpeter/ssData/Guppy_basecalling/RUN11_F/workspace/"
+outdir: "/home/jpeter/DATA/FLEPseq/RUN11_F/"
+barcode_corr: "/home/jpeter/DATA/FLEPseq/RUN11_F/barcode_correspondance.tsv"
+
+runs_dir: "1_Runs"
+mapping_dir: "2_Mapping"
+polyA_dir: "3_PolyA"
+tail_dir: "4_Tail"
+
+introns_exons: "/home/jpeter/DATA/ReferenceGenomes/Athaliana/TAIR10/exon_intron_pos.repr.bed"
+select_introns: "/home/jpeter/DATA/ReferenceGenomes/Athaliana/TAIR10/select_introns.txt"
+
+reference_genome: "/home/jpeter/DATA/ReferenceGenomes/Athaliana/TAIR10/TAIR10_chr_all.fas" # Reference genome in fasta
+
+## MINIMAP MAPPING ADDITIONAL PARAMETERS
+minimap2_add_opts: "--secondary=no -G 5000"
+
+```
+
+## Usage
+
+To run the whole pipeline, just execute the runFLEPseq.sh file containing the snakemakes commands
+```console
+conda activate snakemake # or mamba activate snakemake if it is installed
+# Go in the 'workflow' folder where the Snakefile is 
+cd FLEPseq2/workflow
+bash runFLEPseq.sh
+```
+
+## Requirements
+
+The only requirement to run the snakefiles is:
+- snakemake (>=7)
+
+The other requirements will be handled directly by snakemake with the --use-conda option. This will automatically set up an environement containing all the requirements for the pipeline's execution.
+
+
 
 ## Usefull links
 
 - Research article describing FLEPSeq2: https://www.nature.com/articles/s41596-021-00581-7
+
+
