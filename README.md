@@ -28,10 +28,10 @@ graph TD
 
 the fastq files of each sample (genotype) have to be concatenated in the output directory:
 ```console
-mkdir -p ~/DATA/FLEPseq/RUN11_F/1_Runs
+mkdir -p /home/jpeter/DATA/NanoRACE/Test_RACE/OUTDIR2/1_Runs
 
-cat barcode12/*.fastq.gz > ~/DATA/FLEPseq/RUN11_F/1_Runs/barcode12.fastq.gz
-cat barcode13/*.fastq.gz > ~/DATA/FLEPseq/RUN11_F/1_Runs/barcode13.fastq.gz
+cat barcode12/*.fastq.gz > /home/jpeter/DATA/NanoRACE/Test_RACE/OUTDIR2/1_Runs/barcode12.fastq.gz
+cat barcode13/*.fastq.gz > /home/jpeter/DATA/NanoRACE/Test_RACE/OUTDIR2/1_Runs/barcode13.fastq.gz
 ```
 
 ## Getting started
@@ -39,24 +39,27 @@ cat barcode13/*.fastq.gz > ~/DATA/FLEPseq/RUN11_F/1_Runs/barcode13.fastq.gz
 Clone the repository
 
 ```console
-git clone https://github.com/jackson-peter/FLEPseq2.git
+git clone https://github.com/jackson-peter/NanoRACE.git
 ```
 
 A configuration file (.yaml) is required to run the workflow. An example is included in the FLEPseq2/config folder. You can modify it to suit your data.
+
 ```yaml
-basecalled_dir: "/ssd_workspace/jpeter/ssData/Guppy_basecalling/RUN11_F/workspace/"
-outdir: "/home/jpeter/DATA/FLEPseq/RUN11_F/"
-barcode_corr: "/home/jpeter/DATA/FLEPseq/RUN11_F/barcode_correspondance.tsv"
+
+basecalled_dir: "/ssd_workspace/jpeter/ssData/Guppy_basecalling/20230131_Nano/workspace"
+outdir: "/home/jpeter/DATA/NanoRACE/Test_RACE/OUTDIR2"
+barcode_corr: "/home/jpeter/DATA/NanoRACE/Test_RACE/OUTDIR2/barcode_corr.tsv"
+
 
 runs_dir: "1_Runs"
 mapping_dir: "2_Mapping"
 polyA_dir: "3_PolyA"
 tail_dir: "4_Tail"
 
-introns_exons: "/home/jpeter/DATA/ReferenceGenomes/Athaliana/TAIR10/exon_intron_pos.repr.bed"
+introns_exons: "/home/jpeter/DATA/NanoRACE/Test_RACE/NanoRACE_RUN03_31012023_exon_intron_posV2.bed"
 select_introns: "/home/jpeter/DATA/ReferenceGenomes/Athaliana/TAIR10/select_introns.txt"
 
-reference_genome: "/home/jpeter/DATA/ReferenceGenomes/Athaliana/TAIR10/TAIR10_chr_all.fas" # Reference genome in fasta
+reference_genome: "/home/jpeter/DATA/NanoRACE/Test_RACE/NanoRACE_RUN03_31012023_mapping.fa" # Reference genome in fasta
 
 ## MINIMAP MAPPING ADDITIONAL PARAMETERS
 minimap2_add_opts: "--secondary=no -G 5000"
