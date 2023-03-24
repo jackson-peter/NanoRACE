@@ -1,7 +1,5 @@
 # Nano3RACE-Seq
 
-## TO DO: Complete this file. 
-
 ## Description
 
 Snakemake pipeline for polyA detection via Nano3'RACE
