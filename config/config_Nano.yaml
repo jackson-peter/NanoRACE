@@ -1,6 +1,7 @@
 basecalled_dir: "/ssd_workspace/jpeter/ssData/Guppy_basecalling/20230131_Nano/workspace"
-outdir: "/home/jpeter/DATA/NanoRACE/Test_RACE/OUTDIR2"
-barcode_corr: "/home/jpeter/DATA/NanoRACE/Test_RACE/OUTDIR2/barcode_corr.tsv"
+outdir: "/home/jpeter/DATA/NanoRACE/Test_RACE/OUTDIR3"
+barcode_corr: "/home/jpeter/DATA/NanoRACE/Test_RACE/OUTDIR3/barcode_corr.tsv"
+sequencing_summary: "/home/jpeter/DATA/NanoRACE/Test_RACE/OUTDIR3/1_Runs/sequencing_summary.txt"
 
 
 runs_dir: "1_Runs"

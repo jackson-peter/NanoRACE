@@ -134,7 +134,8 @@ rule merge_read_info:
 rule extract_tails:
     input:
         merged_read_info = rules.merge_read_info.output.read_info,
-        fastq = Path(config["runs_dir"], "{sample}.fastq.gz")
+        fastq = Path(config["runs_dir"], "{sample}.fastq.gz"),
+        seq_sum = Path(config["sequencing_summary"])
         #fasta = rules.fastq2fasta.output.fasta
     output:
         result = Path(config["tail_dir"], "{sample}.read_info.result.merged.parts.csv"),
@@ -147,7 +148,7 @@ rule extract_tails:
         mem = "16G"
     shell:
         """
-        extract_tails.py --inadapter {input.merged_read_info} --inseq {input.fastq} --out {output.result}
+        extract_tails.py --inadapter {input.merged_read_info} --inseq {input.fastq} --out {output.result} --seq_summary {input.seq_sum}
         """
 
 
