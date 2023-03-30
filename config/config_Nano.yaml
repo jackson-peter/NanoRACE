@@ -1,18 +1,19 @@
+### EXPERIMENT SPECIFIC 
 basecalled_dir: "/ssd_workspace/jpeter/ssData/Guppy_basecalling/20230131_Nano/workspace"
 outdir: "/home/jpeter/DATA/NanoRACE/Test_RACE/OUTDIR3"
 barcode_corr: "/home/jpeter/DATA/NanoRACE/Test_RACE/OUTDIR3/barcode_corr.tsv"
 sequencing_summary: "/home/jpeter/DATA/NanoRACE/Test_RACE/OUTDIR3/1_Runs/sequencing_summary.txt"
 
-
+### OUTPUT FILES ORGANIZATION
 runs_dir: "1_Runs"
 mapping_dir: "2_Mapping"
 polyA_dir: "3_PolyA"
 tail_dir: "4_Tail"
 
+### ANNOTATIONS
 introns_exons: "/home/jpeter/DATA/NanoRACE/Test_RACE/NanoRACE_RUN03_31012023_exon_intron_posV2.bed"
 select_introns: "/home/jpeter/DATA/ReferenceGenomes/Athaliana/TAIR10/select_introns.txt"
-
 reference_genome: "/home/jpeter/DATA/NanoRACE/Test_RACE/NanoRACE_RUN03_31012023_mapping.fa" # Reference genome in fasta
 
-## MINIMAP MAPPING ADDITIONAL PARAMETERS
+### MINIMAP MAPPING ADDITIONAL PARAMETERS
 minimap2_add_opts: "--secondary=no -G 5000"

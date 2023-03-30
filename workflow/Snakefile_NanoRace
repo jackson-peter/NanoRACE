@@ -86,9 +86,8 @@ rule adapterFinder:
 rule polya_caller:
     input:
         adapters = rules.adapterFinder.output.adapters,
-        #summary = RUNS_DIR / "{sample}.sequencing_summary.txt",
-        summary = Path(config["runs_dir"], "sequencing_summary.txt"),
-        fast5_dir = Path(config["basecalled_dir"]),
+        summary = Path(config["sequencing_summary"]),
+        fast5_dir = Path(config["basecalled_dir"])
     output:
         polya = Path(config["polyA_dir"],"{sample}.polya_tail.results.txt")
     conda: 
@@ -135,7 +134,7 @@ rule extract_tails:
     input:
         merged_read_info = rules.merge_read_info.output.read_info,
         fastq = Path(config["runs_dir"], "{sample}.fastq.gz"),
-        seq_sum = Path(config["sequencing_summary"])
+        summary = Path(config["sequencing_summary"])
         #fasta = rules.fastq2fasta.output.fasta
     output:
         result = Path(config["tail_dir"], "{sample}.read_info.result.merged.parts.csv"),
@@ -148,7 +147,7 @@ rule extract_tails:
         mem = "16G"
     shell:
         """
-        extract_tails.py --inadapter {input.merged_read_info} --inseq {input.fastq} --out {output.result} --seq_summary {input.seq_sum}
+        extract_tails.py --inadapter {input.merged_read_info} --inseq {input.fastq} --out {output.result} --summary {input.summary}
         """
 
 
