@@ -173,6 +173,20 @@ ggplot(df_uri %>% filter(polya_length_nchar<200,
 ggsave(filename =file.path(dir_add_tail,"PolyA_length_nchar.pdf"),width = 5, height = 6, dpi = 300)
 
 
+
+ggplot(df_uri %>% filter(polya_length_nchar<200,
+                         polya_length_nchar>10,
+                         dedup_state=="best")) +
+  geom_density(aes(polya_length_nchar, fill=sample, color=sample), alpha=0.2,  lwd = 1) +
+  facet_wrap(~U_state, scales="free") +
+  scale_fill_manual(values = my_colors) +
+  scale_color_manual(values = my_colors) +
+  theme_bw() +
+  ggtitle("Distribution of Poly-A tail sizes", subtitle = "polyA size=number of characters PolyA")
+
+ggsave(filename =file.path(dir_add_tail,"PolyA_length_nchar_dedup.pdf"),width = 5, height = 6, dpi = 300)
+
+
 ggplot(df_uri %>% filter(polya_length_nchar<200,
                          polya_length_nchar>10)) +
   geom_density(aes(polya_length, fill=sample, color=sample), alpha=0.2,  lwd = 1) +
@@ -184,6 +198,19 @@ ggplot(df_uri %>% filter(polya_length_nchar<200,
 
 ggsave(filename =file.path(dir_add_tail,"PolyA_length_polyAlength.pdf"), width = 5, height = 6, dpi = 300)
 
+
+ggplot(df_uri %>% filter(polya_length_nchar<200,
+                         polya_length_nchar>10,
+                         dedup_state=="best")) +
+  geom_density(aes(polya_length, fill=sample, color=sample), alpha=0.2,  lwd = 1) +
+  facet_wrap(~U_state, scales="free") +
+  scale_fill_manual(values = my_colors) +
+  scale_color_manual(values = my_colors) +
+  theme_bw() +
+  ggtitle("Distribution of Poly-A tail sizes", subtitle = "polyA size=polya_length from FLEPSeq2")
+
+ggsave(filename =file.path(dir_add_tail,"PolyA_length_polyAlength_dedup.pdf"), width = 5, height = 6, dpi = 300)
+
 ggplot(df_uri %>% filter(polya_length_nchar<200,
                          polya_length_nchar>10)) +
   geom_density(aes(init_polya_length, fill=sample, color=sample), alpha=0.2,  lwd = 1) +
@@ -194,6 +221,18 @@ ggplot(df_uri %>% filter(polya_length_nchar<200,
   ggtitle("Distribution of Poly-A tail sizes", subtitle = "polyA size=init_polya_length from FLEPSeq2")
 
 ggsave(filename =file.path(dir_add_tail,"PolyA_length_initPolyALength.pdf"), width = 5, height = 6, dpi = 300)
+
+ggplot(df_uri %>% filter(polya_length_nchar<200,
+                         polya_length_nchar>10,
+                         dedup_state=="best")) +
+  geom_density(aes(init_polya_length, fill=sample, color=sample), alpha=0.2,  lwd = 1) +
+  facet_wrap(~U_state, scales="free") +
+  scale_fill_manual(values = my_colors) +
+  scale_color_manual(values = my_colors) +
+  theme_bw() +
+  ggtitle("Distribution of Poly-A tail sizes", subtitle = "polyA size=init_polya_length from FLEPSeq2")
+
+ggsave(filename =file.path(dir_add_tail,"PolyA_length_initPolyALength_dedup.pdf"), width = 5, height = 6, dpi = 300)
 
 
 ######## \ PolyA

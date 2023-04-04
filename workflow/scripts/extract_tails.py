@@ -35,7 +35,7 @@ REV=["R-F", "R-R", "R-N", "R-UF", "R-UUR", "R-UR", "N-F", "N-UF", "UF-F", "UR-F"
 @click.option('--verbose', is_flag=True, help="Print sequences with colors for polytail, adapter and delimiter")
 @click.option('--debug', is_flag=True, help="for developping purposes, prints additional information")
 
-def main(inadapter, inseq, out, seq_summary, constant_seq="CTGAC", umi_seq="NNNNNNNNNN", adapt_seq="CTGTAGGCACCATCAAT", dedup=False, verbose=False, debug=False):
+def main(inadapter, inseq, out, summary, constant_seq="CTGAC", umi_seq="NNNNNNNNNN", adapt_seq="CTGTAGGCACCATCAAT", dedup=False, verbose=False, debug=False):
     fields = ['read_core_id', 'chr', 'read_exon_total_num','mRNA', "mRNA_start", "mRNA_end", 'mRNA_intron_num', 'retention_introns',
               'polya_start_raw', 'polya_end_raw','polya_start_base', 'polya_end_base', 
               'init_polya_start_base', 'init_polya_end_base','primer_type', 'polya_length', 'init_polya_length']
@@ -77,7 +77,7 @@ def main(inadapter, inseq, out, seq_summary, constant_seq="CTGAC", umi_seq="NNNN
     df = pd.concat([df, df.apply(lambda col: get_composition(col["additional_tail"], "add_tail"), axis=1, result_type="expand")], axis = 1)
     df.drop('read_seqs', axis=1, inplace=True)
     df = df.replace(r'^\s*$', np.nan, regex=True)    
-    df = deduplicate_reads(df, seq_summary)
+    df = deduplicate_reads(df, summary)
     
     df.to_csv(out, encoding='utf-8', index=False, sep='\t', na_rep="NA")
 

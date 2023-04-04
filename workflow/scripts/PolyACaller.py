@@ -96,6 +96,8 @@ def parallel_extract_polya(fast5_to_reads, threads=1, basecall_group="", debug_d
         real_res.append(real_r)
         all_reads.extend(reads)
     df = pd.concat(real_res)
+    print("parallel_extract_polya result df (line 99)")
+    print(len(df))
     return [df, all_reads]
     #print(datetime.datetime.now())
 
@@ -204,6 +206,8 @@ def read_adapter_info(fileadapter, file_fast5pos=None, file_sequencing_summary=N
     PAD_PRIMER_LENGTH = 5
     
     d = pd.read_table(fileadapter)
+    print(f"nb rows fileadapter: {fileadapter}")
+    print(len(d))
     
     if file_select_reads:
         select_reads = pd.read_csv(file_select_reads, sep="\t").read_core_id
@@ -397,6 +401,7 @@ def extract_polya_from_reads(file_fast5, adapter_data, basecall_group="", raw_fi
             RAW_IN.close()
     
     column_names = read.find_polyA(return_result_column_name=True)
+
     results = pd.DataFrame(results, columns=column_names)
     if read_core_ids:
         results["read_core_id"] = read_core_ids
