@@ -9,12 +9,12 @@ The pipeline tries to respect semver specs (https://semver.org/).
 
 ```bash
 # v0.1.1-1-gdeadbee-dirty
-# ^    ^ ^^       ^
-# |    | ||       |
-# |    | ||       '-- flag indicating if local copy is dirty or not
-# |    | |'-- SHA of HEAD (first seven chars)
-# |    | '-- "g" is for git
-# |    '---- number of commits since last tag
+# ^      ^ ^^       ^
+# |      | ||       |
+# |      | ||       '-- flag indicating if local copy is dirty or not
+# |      | |'-- SHA of HEAD (first seven chars)
+# |      | '-- "g" is for git
+# |      '---- number of commits since last tag
 # |
 # '--------- last tag
 ```
