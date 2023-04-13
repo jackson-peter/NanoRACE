@@ -34,6 +34,7 @@ cat barcode14/*.fastq.gz > /home/jpeter/DATA/NanoRACE/Test_RACE/OUTDIR2/1_Runs/b
 ```
 A barcode correspondance file (tab separated) is required and looks as follows:
 
+| ----------- | ---------|
 | barcode12   | WT       |
 | barcode13   | mut1     |
 | barcode14   | mut2     |
