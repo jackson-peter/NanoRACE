@@ -80,24 +80,28 @@ def parallel_extract_polya(fast5_to_reads, threads=1, basecall_group="", debug_d
                         joblib.delayed(extract_polya_from_reads)(file_fast5, adapter_data, basecall_group, return_debug_reads, debug_dir, **kwargs)
                         for file_fast5, adapter_data in fast5_to_reads.groupby("file_fast5")
                     )
+        
     else:
+
         if "raw_file_fast5" in fast5_to_reads.columns:
             res = []
             for (file_fast5, raw_file_fast5), adapter_data in fast5_to_reads.groupby(["file_fast5", "raw_file_fast5"]):
+
                 res.append(extract_polya_from_reads(file_fast5, adapter_data, basecall_group, raw_file_fast5,  return_debug_reads, debug_dir, **kwargs))
         else:
             res = []
             for file_fast5, adapter_data in fast5_to_reads.groupby("file_fast5"):
+
                 res.append(extract_polya_from_reads(file_fast5, adapter_data, basecall_group, return_debug_reads, debug_dir, **kwargs))
     
     real_res = []
     all_reads = []
+    
     for real_r, reads in res:
         real_res.append(real_r)
         all_reads.extend(reads)
+
     df = pd.concat(real_res)
-    print("parallel_extract_polya result df (line 99)")
-    print(len(df))
     return [df, all_reads]
     #print(datetime.datetime.now())
 
@@ -206,9 +210,7 @@ def read_adapter_info(fileadapter, file_fast5pos=None, file_sequencing_summary=N
     PAD_PRIMER_LENGTH = 5
     
     d = pd.read_table(fileadapter)
-    print(f"nb rows fileadapter: {fileadapter}")
-    print(len(d))
-    
+
     if file_select_reads:
         select_reads = pd.read_csv(file_select_reads, sep="\t").read_core_id
         d = d.loc[d.read_core_id.isin(select_reads), :]
@@ -328,7 +330,8 @@ def extract_polya_from_reads(file_fast5, adapter_data, basecall_group="", raw_fi
             "polya_score", "polya_type"]
             If the adapter_data didn't contain read_core_id, it return read_id, or return read_core_id.
             debug_reads is a list of read (Fast5Read) object.
-    """          
+    """
+              
     results = []
     read_core_ids = []
     debug_reads = []
@@ -372,6 +375,8 @@ def extract_polya_from_reads(file_fast5, adapter_data, basecall_group="", raw_fi
     else:
         RAW_IN = None
     
+
+
     try:
         for na, row in adapter_data.iterrows():
             read_id = row["read_id"]
@@ -391,10 +396,13 @@ def extract_polya_from_reads(file_fast5, adapter_data, basecall_group="", raw_fi
             if read_core_id is not None:
                 read_core_ids.append(read_core_id)
             results.append(result)
+            
             debug_reads.append(read)
-    except:
+    
+    except Exception as e:
         raise
     finally:
+
         if is_fast5:
             IN.close()
         if raw_file_fast5:
@@ -610,7 +618,7 @@ class Fast5Read():
         self.event_table = pd.DataFrame({"start": ls_move_raw_start, 
                                     "base": list(self.seq), 
                                     "raw_length": ls_raw_length})
-        print(self.event_table)
+        #print(self.event_table)
         ##2020.12.14 change:                             "event_length": ls_event_length})
         self.samples_per_nt = np.mean(ls_raw_length[ls_raw_length <=np.quantile(ls_raw_length, 0.95)])
         ##2020.12.14 add:
@@ -1349,6 +1357,7 @@ def main(inadapter, fast5pos, summary, fast5dir, out, threads, basecall_group, r
     #if not use PolyAcaller.parallel_extract_polya, but parallel_extract_polya.
     #it will error when use pickle.dump #local variable 'BasecallPickleRead' referenced before assignment
     df.to_csv(out, sep="\t", index=False)
+    
 
 if __name__ == '__main__':
     main()

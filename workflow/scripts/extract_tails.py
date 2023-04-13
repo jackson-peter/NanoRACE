@@ -38,7 +38,7 @@ REV=["R-F", "R-R", "R-N", "R-UF", "R-UUR", "R-UR", "N-F", "N-UF", "UF-F", "UR-F"
 def main(inadapter, inseq, out, summary, constant_seq="CTGAC", umi_seq="NNNNNNNNNN", adapt_seq="CTGTAGGCACCATCAAT", dedup=False, verbose=False, debug=False):
     fields = ['read_core_id', 'chr', 'read_exon_total_num','mRNA', "mRNA_start", "mRNA_end", 'mRNA_intron_num', 'retention_introns',
               'polya_start_raw', 'polya_end_raw','polya_start_base', 'polya_end_base', 
-              'init_polya_start_base', 'init_polya_end_base','primer_type', 'polya_length', 'init_polya_length']
+              'init_polya_start_base', 'init_polya_end_base','primer_type', 'polya_length', 'init_polya_length', 'type']
     dtypes= {'read_core_id': str,
              'chr': str,
              'read_exon_total_num': int,
@@ -53,7 +53,8 @@ def main(inadapter, inseq, out, summary, constant_seq="CTGAC", umi_seq="NNNNNNNN
              'init_polya_end_base': int,
              'primer_type': str,
              'polya_length': float,
-             'init_polya_length': float}
+             'init_polya_length': float,
+             'type': str}
     
     log_dict={}
     df = pd.read_csv(inadapter, delimiter = "\t", usecols=fields,dtype=dtypes)
@@ -71,6 +72,8 @@ def main(inadapter, inseq, out, summary, constant_seq="CTGAC", umi_seq="NNNNNNNN
     tqdm.pandas()
     df['read_seqs']=df.swifter.apply(lambda x: get_seq(fq, x.readname, x.primer_type in REV ), axis=1)
     df['sense']= np.where(df["primer_type"].isin(FWD), "FWD", "REV")
+    # This step is to avoid inconsistencies when calculating boundaries (polya, additional tail...)
+    df['init_polya_end_base'] = np.where((df['init_polya_start_base'] == df['init_polya_end_base']) , df['init_polya_end_base']-1, df['init_polya_end_base'])
 
     df[['polytail', 'additional_tail', 'delimiter', 'dist_delim', 'umi', 'adapter', 'dist_adapter', 'coords_in_read', 'comment']] = df.apply(get_three_primes_parts_row, constant_seq=constant_seq, umi_seq=umi_seq, adapt_seq=adapt_seq, debug=debug, axis=1 )
     df = pd.concat([df, df.apply(lambda col: get_composition(col["polytail"], "A_tail"), axis=1, result_type="expand")], axis = 1)
@@ -101,57 +104,55 @@ def get_three_primes_parts_row(row, constant_seq, umi_seq, adapt_seq, debug):
     read_seq=row['read_seqs']
     primer_type=row['primer_type']
 
-    # if no polyA, we don't look for other infos.
-    if row['init_polya_start_base'] == row['init_polya_end_base']:
-        
-        return pd.Series([np.nan, np.nan, np.nan,np.nan , np.nan, np.nan, np.nan, 'polyA_start=polyA_end'])
-
     polytail=np.nan
     additional_tail=np.nan
-    if primer_type in FWD:
-        gene_start_in_read=0
-        gene_end_in_read=row['init_polya_start_base']-1
-        gene = read_seq[:gene_end_in_read]
-        polytail_start_in_read=row['init_polya_start_base']-1
-        polytail_end_in_read=row['init_polya_end_base']
-        polytail = read_seq[polytail_start_in_read:polytail_end_in_read]
-        
-        three_p_seq_start_in_read=row['init_polya_end_base']
-        three_p_seq_end_in_read=len(read_seq)
-        three_p_seq=read_seq[three_p_seq_start_in_read:]
-        if len(three_p_seq)>200:
-            three_p_seq_end_in_read=200
-            three_p_seq=three_p_seq[:three_p_seq_end_in_read]
-
-        align = get_umi_alignment(three_p_motive, three_p_seq)
-        start_adapt=align['locations'][0][0]
-        additional_tail_start_in_read=row['init_polya_end_base']
-        additional_tail_end_in_read=row['init_polya_end_base']+start_adapt
-        additional_tail=read_seq[additional_tail_start_in_read:additional_tail_end_in_read]
-
-    elif primer_type in REV:
-        
-        gene_start_in_read=0
-        gene_end_in_read=len(read_seq) -row['init_polya_end_base']
-        gene = read_seq[:gene_end_in_read]
-        polytail_start_in_read=len(read_seq) -row['init_polya_end_base']
-        polytail_end_in_read=len(read_seq) -row['init_polya_start_base']+1
-        polytail = read_seq[polytail_start_in_read:polytail_end_in_read]
-        three_p_seq_start_in_read=len(read_seq) - row['init_polya_start_base']+1
-        three_p_seq_end_in_read=len(read_seq)
-        three_p_seq=read_seq[three_p_seq_start_in_read:]
-        if len(three_p_seq)>200:
-            three_p_seq_end_in_read=200
-            three_p_seq=three_p_seq[:three_p_seq_end_in_read] 
-
-        align = get_umi_alignment(three_p_motive, three_p_seq)
-        start_adapt=align['locations'][0][0]
-        additional_tail_start_in_read=len(read_seq) - row['init_polya_start_base']+1
-        additional_tail_end_in_read=len(read_seq) - row['init_polya_start_base']+1+start_adapt
-        additional_tail=read_seq[additional_tail_start_in_read:additional_tail_end_in_read]  
+    try:
+        if primer_type in FWD:
+            gene_start_in_read=0
+            gene_end_in_read=row['init_polya_start_base']-1
+            gene = read_seq[:gene_end_in_read]
+            polytail_start_in_read=row['init_polya_start_base']-1
+            polytail_end_in_read=row['init_polya_end_base']
+            polytail = read_seq[polytail_start_in_read:polytail_end_in_read]
             
-    else :
-        raise Exception(f"Unknown primer type: {primer_type}\n{FWD}\n{REV}")
+            three_p_seq_start_in_read=row['init_polya_end_base']
+            three_p_seq_end_in_read=len(read_seq)
+            three_p_seq=read_seq[three_p_seq_start_in_read:]
+            if len(three_p_seq)>200:
+                three_p_seq_end_in_read=200
+                three_p_seq=three_p_seq[:three_p_seq_end_in_read]
+
+            align = get_umi_alignment(three_p_motive, three_p_seq)
+            start_adapt=align['locations'][0][0]
+            additional_tail_start_in_read=row['init_polya_end_base']
+            additional_tail_end_in_read=row['init_polya_end_base']+start_adapt
+            additional_tail=read_seq[additional_tail_start_in_read:additional_tail_end_in_read]
+
+        elif primer_type in REV:
+            
+            gene_start_in_read=0
+            gene_end_in_read=len(read_seq) -row['init_polya_end_base']
+            gene = read_seq[:gene_end_in_read]
+            polytail_start_in_read=len(read_seq) -row['init_polya_end_base']
+            polytail_end_in_read=len(read_seq) -row['init_polya_start_base']+1
+            polytail = read_seq[polytail_start_in_read:polytail_end_in_read]
+            three_p_seq_start_in_read=len(read_seq) - row['init_polya_start_base']+1
+            three_p_seq_end_in_read=len(read_seq)
+            three_p_seq=read_seq[three_p_seq_start_in_read:]
+            if len(three_p_seq)>200:
+                three_p_seq_end_in_read=200
+                three_p_seq=three_p_seq[:three_p_seq_end_in_read] 
+
+            align = get_umi_alignment(three_p_motive, three_p_seq)
+            start_adapt=align['locations'][0][0]
+            additional_tail_start_in_read=len(read_seq) - row['init_polya_start_base']+1
+            additional_tail_end_in_read=len(read_seq) - row['init_polya_start_base']+1+start_adapt
+            additional_tail=read_seq[additional_tail_start_in_read:additional_tail_end_in_read]  
+                
+        else :
+            raise Exception(f"Unknown primer type: {primer_type}\n{FWD}\n{REV}")
+    except Exception as e:
+        return pd.Series([np.nan, np.nan, np.nan,np.nan , np.nan, np.nan, np.nan, "no coords", f"{e} occurred"])
 
     umi = align["umi"]  
     three_p_seq_without_addtail=three_p_seq[len(additional_tail):]
@@ -161,18 +162,16 @@ def get_three_primes_parts_row(row, constant_seq, umi_seq, adapt_seq, debug):
     # if delimiter is absent, the alignment went wrong and therefore we shouldn't trust the results.
     if delimiter=="":
         return pd.Series([np.nan, np.nan, np.nan,np.nan , np.nan, np.nan, np.nan, "no coords", "no delimiter found"])
-
     
     dist_adapter=edlib.align(adapter, adapt_seq,task="path", mode='HW')["editDistance"]
     dist_delim=edlib.align(delimiter, constant_seq,task="path", mode='HW')["editDistance"] 
-    reconstructed_seq=gene+polytail+additional_tail+delimiter + umi + adapter
     reconstructed_coords_in_read=f"{gene_start_in_read}:{gene_end_in_read}:{polytail_start_in_read}:{polytail_end_in_read}:{additional_tail_start_in_read}:{additional_tail_end_in_read}"
-    
-
+    reconstructed_seq=gene+polytail+additional_tail+delimiter + umi + adapter
+        
     if debug:
         print("")
         print("###########")
-        print(row['read_core_id'])
+        print(row['read_core_id'], primer_type)
         print(three_p_seq.partition(umi)[0])
         print(three_p_seq.partition(umi)[2])
         print(primer_type)
@@ -186,8 +185,11 @@ def get_three_primes_parts_row(row, constant_seq, umi_seq, adapt_seq, debug):
         print(gene)
         print("polytail")
         print(row['init_polya_start_base'], row['init_polya_end_base'])
+        print(polytail_start_in_read, polytail_end_in_read)
         print(polytail)
+        print(len(polytail))
         print("additional_tail")
+        print(additional_tail_start_in_read, additional_tail_end_in_read)
         print(additional_tail)
         print("delimiter")
         print(delimiter)
@@ -203,6 +205,8 @@ def get_three_primes_parts_row(row, constant_seq, umi_seq, adapt_seq, debug):
     try:
         assert(reconstructed_seq in read_seq)
     except AssertionError:
+        print(row)
+        print(read_seq)
         sys.exit("Assertion error for reconstructed sequence")
 
     return pd.Series([polytail, additional_tail, delimiter, dist_delim, umi, adapter, dist_adapter,reconstructed_coords_in_read, "everything ok"])
